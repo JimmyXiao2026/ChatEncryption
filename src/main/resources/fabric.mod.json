@@ -1,0 +1,36 @@
+{
+	"schemaVersion": 1,
+	"id": "chatencryption",
+	"version": "${version}",
+	"name": "Chat Encryption",
+	"description": "Replicates the chat encryption feature of No Chat Reports for 1.21.5+. Encrypt and decrypt chat messages using a shared secret key, compatible with No Chat Reports encryption.",
+	"authors": [
+		"JimmyXiao"
+	],
+	"contact": {
+		"homepage": "https://fabricmc.net/",
+		"sources": "https://github.com/"
+	},
+	"license": "MIT",
+	"icon": "assets/chatencryption/icon.png",
+	"environment": "*",
+	"accessWidener": "chatencryption.accesswidener",
+	"entrypoints": {
+		"main": [
+			"com.jimmyxiao.chatencryption.ChatEncryption"
+		]
+	},
+	"mixins": [
+		"chatencryption.mixins.json",
+		{
+			"config": "chatencryption.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.19.5",
+		"minecraft": "~1.21.11",
+		"java": ">=21",
+		"fabric-api": "*"
+	}
+}
