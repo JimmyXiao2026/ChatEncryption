@@ -1,43 +1,60 @@
 # Chat Encryption
 
-一个 Fabric mod，复刻 No Chat Reports 的**聊天加密**功能（不含禁用聊天举报），用于 MC **1.21.11**。
+A Fabric mod that replicates the **chat encryption** feature of [No Chat Reports](https://modrinth.com/mod/no-chat-reports) (NCR) for Minecraft **1.21.11** — without the chat-report disabling part.
 
-> No Chat Reports 自 1.21.5 起不再提供聊天加密，本 mod 补位。
+> No Chat Reports removed chat encryption starting in 1.21.5. This mod fills that gap while staying fully compatible with NCR's encryption format.
 
-## 安装
+[中文 (简体)](README.zh-CN.md) · **English**
 
-1. 把 `ChatEncryption-1.0.0.jar` 放进 `.minecraft/mods/`。
-2. 需要 Fabric Loader ≥0.19.5、Fabric API、Java ≥21。
-3. 进入游戏，聊天输入框右侧会出现加密按钮。
+## Features
 
-## 功能（与 No Chat Reports 完全兼容）
+- **4 encryption algorithms**: AES-CFB8 (default), AES-GCM, AES-ECB, and Caesar.
+- **Multi-key support**: store several keys, each with an optional **note**, select which key to send with, and delete keys you no longer need.
+  - Encryption config screen now opens a **key-management sub-screen** (via the "Key" button): add keys (manual input, random, or derived from a passphrase) with a note, and pick/delete saved keys.
+- **Decryption modes**:
+  - By default, incoming messages are tried against **every saved key** (any of them can decrypt).
+  - Optional **"Only decrypt active key"** toggle to decrypt with just the selected key.
+  - Optional **"Keep decrypting when disabled"** (default ON): keeps decrypting server chat even when encryption is off.
+- Encryption toggle button next to the chat input; **hold Ctrl** while sending to send the message **unencrypted**.
+- Incoming encrypted messages are automatically decrypted and tagged with an `Encrypted` indicator (can be hidden in config).
+- Config lives in `config/NoChatReports/NCR-Encryption.json`, so existing NCR encryption keys carry over seamlessly.
 
-- 4 种算法：AES-CFB8（默认）、AES-GCM、AES-ECB、凯撒。
-- 配置界面（右键点击聊天框的加密按钮进入，或在加密按钮无效时点击进入）：
-  - 选择算法、设置密钥（或从口令派生）、随机生成密钥、是否加密公屏消息。
-- 加密开关按钮：正常点击切换开关；按住 Ctrl 发送的消息**不加密**。
-- 接收端自动解密，密文消息带 `Encrypted` 图标标识（可在配置中关闭指示器）。
-- 配置文件：`config/NoChatReports/NCR-Encryption.json`（沿用旧版 key，可无缝兼容旧 No Chat Reports 的加密消息）。
+## Install
 
-## 界面（复刻自 1.21.4 No Chat Reports）
+1. Put `ChatEncryption-1.0.0.jar` into `.minecraft/mods/`.
+2. Requires Fabric Loader `>=0.19.5`, Fabric API, and Java `>=21`.
+3. Launch the game — an encryption button appears next to the chat input.
 
-- 聊天屏加密按钮（active / inactive / error 三种贴图）
-- 加密配置屏（算法选择、密钥/口令输入、公屏加密勾选、校验图标、随机按钮）
-- 首次使用警告屏（含"不再显示"勾选与"了解更多"链接）
+## Usage
 
-## 构建
+- **Toggle encryption**: click the button next to the chat input.
+- **Configure**: right-click the button (or click it when no valid key is set) to open the config screen.
+- **Manage keys**: in the config screen, click the **Key** button to open the key-management sub-screen:
+  - Type a **note** and a **key** (or press the dice to randomize, or enter a passphrase to derive a key), then **Add**.
+  - In the list, **Select** the key to send with, or **Delete** a key.
+- Hold **Ctrl** while sending a message to send it in plaintext.
+
+## Compatibility with No Chat Reports
+
+- Uses the same config file (`config/NoChatReports/NCR-Encryption.json`).
+- Uses the same encryption output format (`#%` prefix, Base64R scrambling, PBKDF2 passphrase derivation).
+- Messages encrypted by NCR 1.21.4 can be decrypted by this mod, and vice versa, as long as the same key and algorithm are used.
+
+## Build
 
 ```bash
-# 需 JDK 25（fabric-loom 1.18.2 要求）
+# Requires JDK 25 (fabric-loom 1.18.2 requirement)
 set JAVA_HOME=C:\Program Files\Java\jdk-25.0.2
 gradlew remapJar
-# 产物在 build/libs/chatencryption-1.0.0.jar
+# Output: build/libs/chatencryption-1.0.0.jar
 ```
 
-注意：`gradlew build` 会在 remapSourcesJar 阶段因 JDK25 + JDT/Mercury 问题失败，请用 `remapJar`。
+Note: `gradlew build` fails in the `remapSourcesJar` step due to a JDK25 + JDT/Mercury issue — use `remapJar` instead.
 
-## 验证情况
+## Localization
 
-- 主源码集 + 客户端源码集均编译通过（`compileJava` / `compileClientJava`）。
-- `remapJar` 打包成功，jar 内含全部类、4 个客户端 mixin、语言文件、17 张加密贴图、图标与 accesswidener。
-- 尚未在游戏内实机加载测试（mixin 注入点已按 1.21.11 API 逐类核对，但首次进游戏请留意是否正常加载）。
+Ship with **51 language files** (including 文言 / Classical Chinese, `lzh`), generated from an `en_us` base. Keys not hand-translated fall back to English.
+
+## License
+
+MIT

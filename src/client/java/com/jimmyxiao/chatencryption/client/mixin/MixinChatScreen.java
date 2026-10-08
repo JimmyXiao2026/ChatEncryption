@@ -8,6 +8,7 @@ import com.jimmyxiao.chatencryption.client.gui.TooltipHelper;
 import com.jimmyxiao.chatencryption.config.EncryptionConfig;
 import com.jimmyxiao.chatencryption.encryption.Encryptor;
 import com.mojang.blaze3d.platform.InputConstants;
+import java.util.Optional;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -49,7 +50,30 @@ public abstract class MixinChatScreen extends Screen {
 		String message = info.getReturnValue();
 		EncryptionConfig config = ChatEncryption.getEncryptionConfig();
 		config.setLastMessage(message);
-		if (!message.isEmpty() && !this.hasControlDown() && config.shouldEncrypt(message)) {
+		if (message.isEmpty() || this.hasControlDown()) {
+			return;
+		}
+		// Player-specific key: independent of the global encryption toggle. If this
+		// is a private message to a player that has an enabled dedicated key, encrypt
+		// that message with that player's key.
+		String player = config.getRecipientPlayerName(message);
+		if (player != null) {
+			Optional<Encryptor<?>> playerEnc = config.getEncryptorForPlayer(player);
+			if (playerEnc.isPresent()) {
+				int index = config.getEncryptionStartIndex(message);
+				if (index != -1) {
+					String noencrypt = message.substring(0, index);
+					String encrypt = message.substring(index);
+					if (encrypt.length() > 0) {
+						int maxEncryptedLength = MESSAGE_MAX_LENGTH - noencrypt.length();
+						info.setReturnValue(noencrypt + this.getEncrypted(playerEnc.get(), encrypt, maxEncryptedLength));
+						return;
+					}
+				}
+			}
+		}
+		// Global encryption with the active key.
+		if (config.shouldEncrypt(message)) {
 			config.getEncryptor().ifPresent(e -> {
 				int index = config.getEncryptionStartIndex(message);
 				String noencrypt = message.substring(0, index);

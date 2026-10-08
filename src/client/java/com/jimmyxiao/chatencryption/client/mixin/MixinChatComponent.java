@@ -4,6 +4,7 @@ import com.jimmyxiao.chatencryption.ChatEncryption;
 import com.jimmyxiao.chatencryption.config.EncryptionConfig;
 import com.jimmyxiao.chatencryption.core.EncryptionUtil;
 import com.jimmyxiao.chatencryption.encryption.Encryptor;
+import java.util.List;
 import java.util.Optional;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -44,13 +45,23 @@ public abstract class MixinChatComponent {
 			ChatEncryption.LOGGER.warn("Chat message cannot be decrypted since level didn't load in yet!");
 			return msg;
 		}
-		Optional<Encryptor<?>> encryptor = config.getEncryptor();
-		if (encryptor.isEmpty()) {
+		List<Encryptor<?>> decryptors = config.getDecryptors();
+		if (decryptors.isEmpty()) {
 			return msg;
 		}
-		Optional<Component> decrypted = EncryptionUtil.tryDecrypt(msg.content(), encryptor.get());
-		if (decrypted.isPresent()) {
-			Component decryptedComponent = decrypted.get();
+		// Try every saved key; use the first one that decrypts the message.
+		Component decrypted = null;
+		for (Encryptor<?> d : decryptors) {
+			Optional<Component> attempt = EncryptionUtil.tryDecrypt(msg.content(), d);
+			if (attempt.isPresent()) {
+				decrypted = attempt.get();
+				break;
+			}
+		}
+		if (decrypted == null) {
+			return msg;
+		}
+		{
 			Component original = msg.content();
 			GuiMessageTag newTag = msg.tag();
 			if (config.showEncryptionIndicators()) {
@@ -61,8 +72,7 @@ public abstract class MixinChatComponent {
 						.append(Component.translatable("tag.chatencryption.encrypted_original", original));
 				newTag = new GuiMessageTag(9125575, ENCRYPTED_ICON, tooltip, "Encrypted");
 			}
-			return new GuiMessage(msg.addedTime(), decryptedComponent, msg.signature(), newTag);
+			return new GuiMessage(msg.addedTime(), decrypted, msg.signature(), newTag);
 		}
-		return msg;
 	}
 }
