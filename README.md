@@ -9,15 +9,19 @@ A Fabric mod that replicates the **chat encryption** feature of [No Chat Reports
 ## Features
 
 - **4 encryption algorithms**: AES-CFB8 (default), AES-GCM, AES-ECB, and Caesar.
-- **Multi-key support**: store several keys, each with an optional **note**, select which key to send with, and delete keys you no longer need.
-  - Encryption config screen now opens a **key-management sub-screen** (via the "Key" button): add keys (manual input, random, or derived from a passphrase) with a note, and pick/delete saved keys.
+- **Multi-key support**: store several keys, each with an optional **note** and its **own encryption algorithm**, select which key to send with, edit any saved key, and delete keys you no longer need.
+  - Encryption config screen opens a **key-management sub-screen** (via the "Key" button): add keys (manual input, random, or derived from a passphrase), pick the algorithm per key, and **Select / Edit / Delete** saved keys.
+  - Each key is bound to the algorithm it was created with, so encryption and decryption always use the matching algorithm.
+- **Per-player keys ("Only for players")**: a key can be restricted to one or more players (semicolon `;` separated).
+  - When you send a private message to a listed player (e.g. `/w Steve hello`), the message body is encrypted with that key **independently of the global encryption toggle**.
+  - If several keys target the same player, the first match is used. Each per-player key can be turned on/off individually in the list.
 - **Decryption modes**:
   - By default, incoming messages are tried against **every saved key** (any of them can decrypt).
   - Optional **"Only decrypt active key"** toggle to decrypt with just the selected key.
   - Optional **"Keep decrypting when disabled"** (default ON): keeps decrypting server chat even when encryption is off.
 - Encryption toggle button next to the chat input; **hold Ctrl** while sending to send the message **unencrypted**.
 - Incoming encrypted messages are automatically decrypted and tagged with an `Encrypted` indicator (can be hidden in config).
-- Config lives in `config/NoChatReports/NCR-Encryption.json`, so existing NCR encryption keys carry over seamlessly.
+- Config lives in `config/NoChatReports/NCR-Encryption.json`; existing NCR keys and older config versions are migrated automatically.
 
 ## Install
 
@@ -30,8 +34,9 @@ A Fabric mod that replicates the **chat encryption** feature of [No Chat Reports
 - **Toggle encryption**: click the button next to the chat input.
 - **Configure**: right-click the button (or click it when no valid key is set) to open the config screen.
 - **Manage keys**: in the config screen, click the **Key** button to open the key-management sub-screen:
-  - Type a **note** and a **key** (or press the dice to randomize, or enter a passphrase to derive a key), then **Add**.
-  - In the list, **Select** the key to send with, or **Delete** a key.
+  - Type a **note** and a **key** (or press the dice to randomize, or enter a passphrase to derive a key), choose the **algorithm**, then **Add**.
+  - In the list, **Select** the key to send with, **Edit** it (note / key / passphrase / algorithm), or **Delete** it.
+  - Toggle **"Only for players"** and list player names separated by `;` to make a per-player key; use the list's on/off button to enable or disable it.
 - Hold **Ctrl** while sending a message to send it in plaintext.
 
 ## Compatibility with No Chat Reports
@@ -53,7 +58,7 @@ Note: `gradlew build` fails in the `remapSourcesJar` step due to a JDK25 + JDT/M
 
 ## Localization
 
-Ship with **51 language files** (including 文言 / Classical Chinese, `lzh`), generated from an `en_us` base. Keys not hand-translated fall back to English.
+Ship with **51 language files** — including Classical Chinese (`lzh`, 文言) and a Cantonese-flavored Traditional Chinese for Hong Kong (`zh_hk`) — generated from an `en_us` base. Keys not hand-translated fall back to English.
 
 ## License
 
